@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Seat of {{bus.number}}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #4752d3;
+            margin: 0;
+            padding: 0;
+            background-image: url('{{ bus.photo.url }}');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            
+        }
+        .container {
+            width: 80%;
+            margin: 50px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+        }
+        .seat-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .seat {
+            width: 50px;
+            height: 50px;
+            background-color: #007bff;
+            margin: 5px;
+            text-align: center;
+            line-height: 50px;
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .selected {
+            background-color: #28a745; /* Green color */
+        }
+        .occupied {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Select a Seat on Bus {{ bus.number }}</h1>
+        <div class="seat-grid" id="seatGrid">
+            <!-- Seats will be dynamically added here -->
+        </div>
+        <br>
+        <br><br><br>
+        <button onclick="confirmBooking()" style="display: block; width: calc(50% - 10px); padding: 10px; font-size: 16px; margin: 5px; border: none; border-radius: 5px; background-color: #007bff; color: #fff; cursor: pointer; transition: background-color 0.3s ease transform 0.3s ease;margin-left: 380px;">Confirm Booking</button>
+<br><br>
+        <button onclick="resetSeats()" style="display: block; width: calc(50% - 10px); padding: 10px; font-size: 16px; margin: 5px; border: none; border-radius: 5px; background-color: #6c757d; color: #fff; cursor: pointer; transition: background-color 0.3s ease, transform 0.3s ease;margin-left: 380px;">Reset Seats</button>
+
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script>
+        
+        // Sample data - replace with your actual seat data from Django
+        const seatsData = JSON.parse('{{ seats|escapejs }}');
+        console.log(seatsData)
+
+        // Function to generate seat HTML based on data
+        function generateSeat(seat) {
+            return `<div class="seat ${seat.is_occupied ? 'occupied' : ''}" id="seat${seat.id}" onclick="toggleSeat(${seat.id})">${seat.seat_number}</div>`;
+        }
+
+        // Function to toggle seat selection
+        
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }   
+            }
+            return cookieValue;
+        }
+
+        const csrftoken = getCookie('csrftoken');
+
+        function toggleSeat(seatId) {
+            const seatElement = document.getElementById(`seat${seatId}`);
+            if (!seatElement.classList.contains('occupied')) {
+                seatElement.classList.toggle('selected');
+
+                console.log('befire ajax')
+                const busId='{{ bus.id }}'
+                console.log('bus nuber', busId)
+
+                $.ajax({
+                    url: '/confirm_seat/',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ seats: seatId, bus_id: busId }),
+                    headers: {
+                        'X-CSRFToken': csrftoken
+                    },
+                    // success: function(response) {
+                    //     // The page reloads on successful AJAX request
+                    //     location.reload();
+                    // },
+                    error: function(xhr, status, error) {
+                        // Handle any errors
+                        console.log("An error occurred: " + error);
+                        }
+                    });
+
+            }
+        }
+          
+
+
+        // Function to confirm booking
+        function confirmBooking() {
+            const selectedSeats = document.querySelectorAll('.seat.selected');
+            const selectedSeatIds = Array.from(selectedSeats).map(seat => seat.id.replace('seat', ''));
+            if (selectedSeats.length === 0) {
+                alert('Please select at least one seat.');
+            } else {
+                // Perform booking confirmation logic here
+                const ticketNumber = Math.floor(Math.random() * 1000000); // Generate random ticket number
+                const bookingDetails = `You have successfully booked seats: ${selectedSeatIds.join(', ')}. Ticket number: ${ticketNumber}.`;
+                
+                        // The page reloads on successful AJAX request
+                location.reload();
+                   
+                
+                alert(bookingDetails);
+                // Send confirmation request using jQuery AJAX
+                
+            }
+        }
+        // Function to confirm booking
+        // function confirmBooking() {
+        //     const selectedSeats = document.querySelectorAll('.seat.selected');
+        //     const selectedSeatIds = Array.from(selectedSeats).map(seat => seat.id.replace('seat', ''));
+            
+        //     if (selectedSeats.length === 0) {
+        //         alert('Please select at least one seat.');
+        //     } else {
+        //         $.ajax({
+        //             url:'/confirm_seat/',
+        //             type: 'POST',
+        //             contentType: 'application/json',
+        //             data: JSON.stringify({ seats:  bus_id }),
+        //             headers: {
+        //                 'X-CSRFToken': csrftoken
+        //             },
+                    
+        //         })
+                
+        //     }
+        // }
+
+        // Function to initialize seats
+        function initializeSeats() {
+            const seatGrid = document.getElementById('seatGrid');
+            seatGrid.innerHTML = seatsData.map(seat => generateSeat(seat)).join('');
+        }
+
+        // Initialize seats when the page loads
+        window.onload = initializeSeats;
+
+        function resetSeats() {
+            const selectedSeats = document.querySelectorAll('.seat.selected');
+            selectedSeats.forEach(seat => seat.classList.remove('selected'));
+
+            // Clear all occupied seats
+            const allSeats = document.querySelectorAll('.seat');
+            allSeats.forEach(seat => seat.classList.remove('occupied'));
+
+            const selectedSeatIds = Array.from(allSeats).map(seat => seat.id.replace('seat', ''));
+            const busId = '{{ bus.id }}';
+
+            $.ajax({
+                url: '/reset_seats/',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ seats: selectedSeatIds, bus_id: busId }),
+                headers: {
+                    'X-CSRFToken': csrftoken
+                },
+                success: function(response) {
+                    console.log('Seats reset successfully');
+
+                },
+                error: function(error) {
+                    console.log(error);
+                    alert('Something went wrong. Please try again later.');
+                }
+            });
+        }   
+
+
+
+    </script>
+</body>
+</html>

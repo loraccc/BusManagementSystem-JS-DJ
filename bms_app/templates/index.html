@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 80%;
+            margin: 50px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+        }
+        .navbar a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: bold;
+            align-items: right;
+        }
+        .bus-list {
+            margin-top: 20px;
+        }
+        .bus-item {
+            background-color: #e9ecef;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .passport-photo {
+            max-width: 100px;
+            height: auto;
+            border-radius: 5px;
+            display: block;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to Our Bus Services</h1>
+        <h>Welcome {{user}}</h3>
+        <div class="navbar">
+            <div></div> <!-- This empty div pushes the logout button to the right -->
+            <a href="{% url 'logout' %}">Logout</a>
+        </div>
+        <div class="bus-list">
+            {% for bus in b %}
+                <div class="bus-item">
+                    <h2>{{ bus.number }}</h2>
+                    <p>Start Point: {{ bus.start_point.name }}</p>
+                    <p>End Point: {{ bus.end_point.name }}</p>
+                    <p>Bus Number  {{ bus.number }} </p>
+                    {% if bus.photo %}
+                        <img src="{{ bus.photo.url }}" alt="" class="passport-photo">
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

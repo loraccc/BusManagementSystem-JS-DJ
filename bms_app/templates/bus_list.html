@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index Page</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f8ff;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background-color: #007bff;
+            color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .navbar a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .search-form {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .search-form input {
+            padding: 15px;
+            font-size: 18px;
+            width: 60%;
+            max-width: 500px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        .search-form input:focus {
+            border-color: #007bff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        .bus-list {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .bus-item {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .bus-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        .bus-item img {
+            width: 100%;
+            height: auto;
+            border-bottom: 1px solid #ddd;
+        }
+        .bus-details {
+            padding: 20px;
+        }
+        .bus-details h2 {
+            margin-top: 0;
+            color: #007bff;
+        }
+        .bus-details p {
+            margin: 5px 0;
+            color: #555;
+        }
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background-color: #f8f9fa;
+        }
+        .select-seat-btn, .view-booking-history-btn {
+            padding: 10px 20px;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            text-align: center;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+        .select-seat-btn {
+            background-color: #28a745;
+        }
+        .view-booking-history-btn {
+            background-color: #17a2b8;
+        }
+        .select-seat-btn:hover, .view-booking-history-btn:hover {
+            transform: translateY(-3px);
+        }
+        .select-seat-btn:hover {
+            background-color: #218838;
+        }
+        .view-booking-history-btn:hover {
+            background-color: #138496;
+        }
+        .bus-item-content {
+            display: flex;
+            align-items: flex-start;
+        }
+        .bus-item-content img {
+            margin-right: 20px;
+            max-width: 150px;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center text-primary mb-4">Welcome to Everest Bus Services</h1>
+        <div class="navbar mb-4">
+            <div>Welcome {{ user }}</div>
+            <a href="{% url 'logout' %}">Logout</a>
+        </div>
+        <div class="search-form mb-4">
+            <form method="GET" action="{% url 'bus_list' %}">
+                <input type="text" name="q" placeholder="Search by Start Point" value="{{ request.GET.q }}" class="form-control mx-auto">
+            </form>
+        </div>
+        <div class="bus-list">
+            {% for bus in buses %}
+                <div class="bus-item">
+                    <div class="bus-item-content">
+                        {% if bus.photo %}
+                            <img src="{{ bus.photo.url }}" alt="{{ bus.number }}">
+                        {% else %}
+                            <img src="{{ MEDIA_URL }}bus_photos/Bmw_D2Wfp7w.png" alt="{{ bus.number }}">
+                        {% endif %}
+                        <div class="bus-details">
+                            <h2>{{ bus.number }}</h2>
+                            <p>Start Point: {{ bus.start_point.name }}, {{ bus.start_point.address }}</p>
+                            <p>End Point: {{ bus.end_point.name }}, {{ bus.end_point.address }}</p>
+                            <p>Ticket Price: Nrs {{ bus.ticket_price }}</p>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a href="{% url 'select_seat' bus.id %}" class="select-seat-btn">Select Seat</a>
+                        <a href="{% url 'booking_history' bus.id %}" class="view-booking-history-btn">View Booking History</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
