@@ -5,7 +5,7 @@ from django.db.models import Q
 
 from django.http import JsonResponse
 
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required,permission_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login as auth_login,logout
 from django.contrib import messages
@@ -15,20 +15,74 @@ from django.views.decorators.csrf import csrf_exempt
 
 from .models import (Bus,
                      Booking,
-                     Seat)
+                     Seat,
+                     Profile)
 import json
 import random
 
 from rest_framework.response import Response
-from rest_framework import viewsets
+from rest_framework import viewsets,status
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .serializers import UserSerializer, BusSerializer, SeatSerializer, BookingSerializer
+from .serializers import (UserSerializer,
+                           BusSerializer
+                        , SeatSerializer,
+                          BookingSerializer,
+                          ProfileSerializer,CustomTokenObtainPairSerializer,UserSignupSerializer)
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+
+class ProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request, pk=None):
+        if pk:
+            profile = get_object_or_404(Profile, pk=pk)
+            serializer = ProfileSerializer(profile)
+        else:
+            profiles = Profile.objects.all()
+            serializer = ProfileSerializer(profiles, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        data=request.data.copy()
+        data['user']=request.user.id
+        serializer = ProfileSerializer(data=data)
+        if serializer.is_valid():
+            user=request.user
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk):
+        profile = get_object_or_404(Profile, pk=pk)
+        serializer = ProfileSerializer(profile, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def patch(self, request, pk):
+        profile = get_object_or_404(Profile, pk=pk)
+        serializer = ProfileSerializer(profile, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        profile = get_object_or_404(Profile, pk=pk)
+        profile.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
 class BusViewSet(viewsets.ModelViewSet):
+
     queryset = Bus.objects.all()
     serializer_class = BusSerializer
 
@@ -40,6 +94,13 @@ class BookingViewSet(viewsets.ModelViewSet):
     queryset = Booking.objects.all()
     serializer_class = BookingSerializer
 
+class UserSignupView(APIView):
+    def post(self, request):
+        serializer = UserSignupSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 def index(request):
     b= Bus.objects.all()
@@ -112,6 +173,7 @@ def booking_confirmation(request, bus_id, seat_id):
     return render(request, 'booking_confirmation.html', {'bus': bus, 'seat': seat})
 
 @csrf_exempt
+@permission_required('bms_app.reset_seats', raise_exception=True)
 def reset_seats(request):
     if request.method == 'POST':
         try:

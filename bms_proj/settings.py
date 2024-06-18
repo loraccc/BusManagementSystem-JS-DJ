@@ -1,8 +1,9 @@
-
 import os
-
+from django.conf import settings
 from pathlib import Path
+from datetime import timedelta
 
+SECRET_KEY="z3ya)vg@6h^s)kz*7y4v%(gdbj)#ag&55_ak3d!i1!g+xul@2t"
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -37,6 +38,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
     'crispy_forms',
     'rest_framework',
+    'rest_framework_simplejwt',
 ]
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
@@ -82,6 +84,39 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'bms_proj.wsgi.application'
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+         'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.CursorPagination',
+    'PAGE_SIZE':10,
+    'EXCEPTION_HANDLER': 'bms_app.exception_handler.custom_exception_handler',
+    'NON_FIELD_ERRORS_KEY': 'validation_error',
+
+}
+
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=50),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ROTATE_REFRESH_TOKENS": False,
+    "BLACKLIST_AFTER_ROTATION": False,
+    "UPDATE_LAST_LOGIN": False,
+
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": settings.SECRET_KEY,
+    "VERIFYING_KEY": "",
+    "AUDIENCE": None,
+    "ISSUER": None,
+    "JSON_ENCODER": None,
+    "JWK_URL": None,
+    "LEEWAY": 0,
+
+    "AUTH_HEADER_TYPES": ("Bearer",),
+}
+
 
 
 # Database

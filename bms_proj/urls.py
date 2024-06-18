@@ -10,7 +10,7 @@ urlpatterns = [
 
     path('accounts/', include('allauth.urls'),name='provider_login_url'),
 
-    path('social/', include('social_django.urls', namespace='social'))
+    # path('social/', include('social_django.urls', namespace='social'))
 ]
 
 

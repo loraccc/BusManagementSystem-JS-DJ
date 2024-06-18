@@ -25,6 +25,11 @@ class Bus(models.Model):
     end_point = models.ForeignKey(Destination, on_delete=models.CASCADE, related_name='end_point')
     ticket_price = models.DecimalField(max_digits=10, decimal_places=2,default=0)
     seats = models.PositiveIntegerField(default=40)  
+    class Meta:
+        permissions = [
+                    ('edit_bus', 'Can edit bus'),
+                    ('reset_seats', 'Can reset seats'),
+                ]
 
     def __str__(self):
         return self.number
@@ -46,3 +51,16 @@ class Booking(models.Model):
     def __str__(self):
         return f'Booking by {self.user.username} for bus {self.bus.number}, seat {self.seat.seat_number}'
     
+class Profile(models.Model):
+    GENDER_CHOICES = [
+        ('M', 'Male'),
+        ('F', 'Female'),
+        ('O', 'Other'),
+    ]
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='profile_images/')
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
+
+    def __str__(self):
+        return f'{self.user.username} Profile'
